@@ -27,6 +27,12 @@
             --lignin-particle-color: #b45309; /* amber-700 */
             --solvent-color: #f3f4f6; /* gray-100 */
             --antisolvent-color: #bfdbfe; /* blue-200 */
+            --hsp-lignin-fill: #b45309; /* amber-700 */
+            --hsp-solvent-fill: #6b7280; /* gray-500 */
+            --hsp-antisolvent-fill: #3b82f6; /* blue-500 */
+            --hsp-mixture-fill: #ef4444; /* red-500 */
+            --hsp-sphere-stroke: #fcd34d; /* yellow-300 */
+            --hsp-sphere-fill: rgba(252, 211, 77, 0.1); /* yellow-300 with opacity */
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -72,6 +78,12 @@
         .property-bar { height: 100%; background-color: var(--accent-color); border-radius: 4px; transition: width 0.3s ease; text-align: right; padding-right: 4px; font-size: 0.7rem; color: white; font-weight: 500; }
         .feedstock-fiber-vis { display: flex; flex-direction: column; gap: 1px; align-items: center; }
 
+        /* HSP Plot Styles */
+        #hspPlot { width: 100%; max-width: 400px; height: auto; aspect-ratio: 1; border: 1px solid var(--border-color-medium); background-color: #fff; margin: 1rem auto; }
+        .hsp-point { transition: all 0.2s ease-out; }
+        .hsp-line { stroke-width: 1; stroke: var(--border-color-dark); }
+        .hsp-sphere { stroke: var(--hsp-sphere-stroke); stroke-width: 1.5; fill: var(--hsp-sphere-fill); stroke-dasharray: 4 2; }
+        .hsp-text { font-size: 9px; fill: #555; text-anchor: middle; }
 
         /* General styling */
         h1, h2, h3 { color: var(--text-color-header); }
@@ -96,7 +108,7 @@
     <header class="bg-gradient-to-r from-amber-600 to-yellow-600 text-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-6 py-5">
             <h1 class="text-3xl font-bold">Lignin Self-Assembly: Physical Chemistry & Nanoparticle Formation</h1>
-            <p class="text-xl font-semibold mt-1">A Short Course on LNPs for Advanced Materials</p>
+            <p class="text-xl font-semibold mt-1">Harnessing Molecular Interactions for Advanced Materials</p>
         </div>
     </header>
 
@@ -145,7 +157,7 @@
 
         <section id="solvent-antisolvent" class="mb-12 p-6 rounded-lg shadow-lg section-bg-white dynamic-content">
             <h2 class="text-2xl font-bold">3. Nanoparticle Formation via Solvent Exchange</h2>
-            <p>This is the most widely used method for preparing LNPs<sup class="text-amber-500">[1, Tables 3&4]</sup>. The principle involves dissolving lignin in a <strong class="text-amber-600">good solvent</strong> and then inducing precipitation and self-assembly by introducing an <strong class="text-amber-600">antisolvent</strong> in which lignin is poorly soluble<sup class="text-amber-500">[126-128]</sup>. This solvent exchange process fundamentally alters the intermolecular forces governing lignin conformation and solubility.</p>
+            <p>This is the most widely used method for preparing LNPs<sup class="text-amber-500">[1, Tables 3&4]</sup>. The principle involves dissolving lignin in a good solvent and inducing precipitation and self-assembly by introducing an antisolvent, typically water<sup class="text-amber-500">[126-128]</sup>. This solvent exchange process fundamentally alters the intermolecular forces governing lignin conformation and solubility.</p>
             <blockquote class="my-4">
                 <strong>Principle:</strong> Decrease solvent quality → Increase unfavorable lignin-solvent interactions → Promote lignin-lignin interactions (hydrophobic association, π-π stacking) → Aggregation & Nanoparticle formation.
             </blockquote>
@@ -156,7 +168,6 @@
                 <p class="text-center instructional-text mb-4">Simulate the addition of an antisolvent (e.g., water) to a lignin solution (e.g., in THF). Observe how lignin molecules self-assemble into nanoparticles as the solvent quality decreases. Adjust parameters to see their effect.</p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                  
                     <div class="space-y-4">
                         <div>
                             <label for="antisolventPercent">Antisolvent (Water) %: <span id="asPercentValue" class="font-bold font-mono text-amber-600">10</span>%</label>
@@ -188,14 +199,70 @@
                  <p class="text-xs text-gray-500 mt-4 text-center">Note: Critical antisolvent concentration often 40-60%<sup class="text-amber-500">[60, 219, 220]</sup>. Adding lignin solution to antisolvent often yields smaller particles and can favor hollow structures in THF/water<sup class="text-amber-500">[1, Fig 6&7]</sup>. Higher lignin concentration generally increases size<sup class="text-amber-500">[58, 160]</sup>.</p>
             </div>
 
+            <h3 class="text-xl font-semibold mt-6 mb-2 text-amber-800">3.5 Understanding Solubility via Hansen Parameters (HSP)</h3>
+            <p>A more quantitative approach to understanding solvent effects involves <strong class="text-amber-600">Hansen Solubility Parameters (HSP)</strong><sup class="text-amber-500">[157, 179]</sup>. This framework describes the cohesive energy of a substance based on three parameters, representing different types of intermolecular forces (units typically MPa<sup>1/2</sup>):</p>
+            <ul class="list-disc list-inside space-y-1 pl-4">
+                <li><strong>δD (Dispersion):</strong> Energy from London dispersion forces (related to molecular size/polarizability).</li>
+                <li><strong>δP (Polar):</strong> Energy from dipole-dipole interactions.</li>
+                <li><strong>δH (Hydrogen Bonding):</strong> Energy from hydrogen bond formation (donor/acceptor capability).</li>
+            </ul>
+            <p>The principle is that "like dissolves like." A solute (lignin) will dissolve well in a solvent if their HSP values are similar. The similarity is quantified by the <strong class="text-amber-600">Hansen distance (Ra)</strong> between the solute (L) and the solvent (S):</p>
+            <code class="block text-center my-2 p-2 bg-amber-50">Ra = sqrt[ 4(δD<sub>L</sub> - δD<sub>S</sub>)² + (δP<sub>L</sub> - δP<sub>S</sub>)² + (δH<sub>L</sub> - δH<sub>S</sub>)² ]</code>
+            <p>Lignin is considered soluble in a solvent if Ra is less than its characteristic <strong class="text-amber-600">Interaction Radius (R0)</strong><sup class="text-amber-500">[181]</sup>. For solvent mixtures (like solvent + antisolvent), the mixture's HSP can be estimated by volume fraction averaging<sup class="text-amber-500">[179]</sup>. As antisolvent (e.g., water, with very different HSP from typical lignin solvents like THF) is added, the mixture's HSP moves away from lignin's HSP, increasing Ra. When Ra exceeds R0, lignin precipitates, triggering self-assembly.</p>
+             <p>While determining precise HSP values for heterogeneous lignins is complex<sup class="text-amber-500">[182-185]</sup>, the concept provides a powerful framework for solvent selection and understanding the solvent exchange mechanism.</p>
+
+            <div class="interactive-container">
+                <h3 class="text-xl font-semibold mb-3 text-center text-amber-700">Interactive HSP Solubility Explorer</h3>
+                <p class="text-center instructional-text mb-4">Select lignin type and solvent. Adjust the antisolvent (water) percentage and observe how the solvent mixture's HSP changes relative to lignin's solubility sphere.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                     <div class="space-y-4">
+                         <div>
+                             <label for="hspLigninType">Lignin Type (Illustrative HSP & R0):</label>
+                             <select id="hspLigninType">
+                                 <option value="kraft" selected>Kraft Lignin (δD≈20, δP≈10, δH≈15, R0≈10)</option>
+                                 <option value="organosolv">Organosolv Lignin (δD≈22, δP≈8, δH≈12, R0≈10)</option>
+                             </select>
+                         </div>
+                          <div>
+                             <label for="hspSolvent">Good Solvent:</label>
+                             <select id="hspSolvent">
+                                 <option value="thf" selected>THF (δD=16.8, δP=5.7, δH=8.0)</option>
+                                 <option value="acetone">Acetone (δD=15.5, δP=10.4, δH=7.0)</option>
+                                 <option value="ethanol">Ethanol (δD=15.8, δP=8.8, δH=19.4)</option>
+                                 <option value="dmso">DMSO (δD=18.4, δP=16.4, δH=10.2)</option>
+                             </select>
+                         </div>
+                         <div>
+                            <label for="hspAntisolventPercent">Antisolvent (Water) %: <span id="hspASPercentValue" class="font-bold font-mono text-amber-600">0</span>%</label>
+                            <input type="range" id="hspAntisolventPercent" min="0" max="100" value="0" step="1">
+                        </div>
+                        <div class="output-box text-sm">
+                            Mixture HSP (δD, δP, δH): <strong id="hspMixValues" class="text-amber-700">N/A</strong><br>
+                            Hansen Distance (Ra): <strong id="hspDistance" class="text-amber-700">N/A</strong><br>
+                            State: <strong id="hspState" class="text-amber-700">Dissolved (Ra < R0)</strong>
+                         </div>
+                     </div>
+                     <div class="visualization-box">
+                         <p class="absolute top-1 left-2 text-xs text-gray-500 z-10">HSP Space (2D Projection): δD vs √(δP²+δH²)</p>
+                         <svg id="hspPlot" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                             {/* */}
+                             <line x1="10" y1="90" x2="90" y2="90" stroke="#a8a29e" stroke-width="0.5"/>
+                             <line x1="10" y1="90" x2="10" y2="10" stroke="#a8a29e" stroke-width="0.5"/>
+                             <text x="50" y="98" class="hsp-text" style="fill: #57534e;">δD (Dispersion)</text>
+                             <text x="5" y="50" class="hsp-text" transform="rotate(-90, 5, 50)" style="fill: #57534e;">√(δP²+δH²) (Polar+H-bond)</text>
+                             {/* */}
+                         </svg>
+                     </div>
+                </div>
+                 <p class="text-xs text-gray-500 mt-4 text-center">Note: HSP values and R0 are illustrative approximations. Plot is a 2D projection. Solubility occurs when the mixture point (red) is inside the lignin solubility sphere (dashed circle).</p>
+            </div>
+
             <h4 class="text-lg font-semibold mt-6 mb-2 text-amber-800">Key Variables in Solvent-Antisolvent Method:</h4>
              <ul class="list-disc list-inside space-y-1 pl-4 text-sm">
                  <li><strong>Initial Lignin Concentration:</strong> Higher concentration generally leads to larger nanoparticles<sup class="text-amber-500">[58, 160, 180, 238-242]</sup>.</li>
-                 <li><strong>Solvent/Antisolvent Ratio:</strong> Precipitation typically occurs above a critical antisolvent concentration (often 40-60%)<sup class="text-amber-500">[60, 219, 220, 239, 243, 244]</sup>.</li>
-                 <li><strong>Addition Rate:</strong> Faster addition of antisolvent usually yields smaller particles<sup class="text-amber-500">[220, 239, 243]</sup>.</li>
-                 <li><strong>Order of Addition:</strong> Adding lignin solution to excess antisolvent sometimes yields smaller particles<sup class="text-amber-500">[1, Fig 7]</sup> and can influence morphology (e.g., favoring hollow spheres in some THF/water systems<sup class="text-amber-500">[1, Fig 6]</sup>).</li>
-                 <li><strong>Agitation:</strong> Higher agitation speed generally reduces particle size<sup class="text-amber-500">[180, 232, 243]</sup>.</li>
-                 <li><strong>Solvent Choice:</strong> Affects initial solubility and interactions. THF, dioxane, acetone, ethanol (+ water) are common<sup class="text-amber-500">[1, Tables 3&4]</sup>.</li>
+                 <li><strong>Solvent/Antisolvent Ratio & HSP Distance:</strong> Precipitation occurs when the mixture HSP moves sufficiently far from the lignin HSP (Ra > R0), typically above a critical antisolvent concentration<sup class="text-amber-500">[60, 219, 220, 239, 243, 244]</sup>.</li>
+                 <li><strong>Addition Rate & Order:</strong> Affect kinetics and can influence final size and morphology (e.g., solid vs. hollow)<sup class="text-amber-500">[1, Fig 6&7; 220, 239, 243]</sup>.</li>
+                 <li><strong>Agitation:</strong> Higher agitation generally reduces particle size<sup class="text-amber-500">[180, 232, 243]</sup>.</li>
              </ul>
         </section>
 
@@ -205,14 +272,13 @@
              <blockquote class="my-4">
                 <strong>Principle:</strong> High pH → Deprotonation (Anionic Charge) → Solubilization via Electrostatic Repulsion & Hydration. <br> Lowering pH → Protonation (Neutralization) → Reduced Repulsion/Hydration → Increased Hydrophobicity → Precipitation & Self-Assembly.
             </blockquote>
-            <p>Typically, lignin is dissolved in an alkaline solution (e.g., dilute NaOH, pH > 11) and then precipitated by adding an acid (HCl, H₂SO₄, etc.) to a target pH<sup class="text-amber-500">[64, 241, 245, 254]</sup>. The final pH significantly impacts particle size and morphology, with lower pH often yielding larger, sometimes porous or fractal-like aggregates<sup class="text-amber-500">[241, 247, 251, 255]</sup>.</p>
+            <p>Typically, lignin is dissolved in alkali (e.g., NaOH, pH > 11) and then precipitated by adding an acid (HCl, H₂SO₄, etc.) to a target pH<sup class="text-amber-500">[64, 241, 245, 254]</sup>. The final pH significantly impacts particle size and morphology, with lower pH often yielding larger, sometimes porous or fractal-like aggregates<sup class="text-amber-500">[241, 247, 251, 255]</sup>.</p>
 
              <div class="interactive-container">
                 <h3 class="text-xl font-semibold mb-3 text-center text-amber-700">Interactive pH Precipitation Simulator</h3>
                 <p class="text-center instructional-text mb-4">Simulate the acidification of an alkaline lignin solution (e.g., Kraft Lignin). Observe protonation and aggregation as pH decreases below the pKa values of functional groups.</p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                  
                     <div class="space-y-4">
                         <div>
                             <label for="ligninPH">Solution pH: <span id="phValue" class="font-bold font-mono text-amber-600">11.0</span></label>
@@ -228,7 +294,6 @@
                             Morphology Trend: <strong id="phMorphology" class="text-amber-700">N/A</strong>
                          </div>
                     </div>
-                
                     <div id="phVis" class="visualization-box" style="background-color: #dbeafe;">
                          <p class="absolute top-1 left-2 text-xs text-gray-500 z-10">System State:</p>
                     </div>
@@ -249,12 +314,12 @@
 
         <section id="additives" class="mb-12 p-6 rounded-lg shadow-lg section-bg-white dynamic-content">
             <h2 class="text-2xl font-bold">5. Modulating Self-Assembly with Additives</h2>
-            <p>The self-assembly process and resulting LNP stability can be significantly influenced by adding other components that interact with lignin:</p>
+            <p>Self-assembly can also be triggered or modified by adding specific substances that interact with dissolved lignin or pre-formed nanoparticles:</p>
             <ul class="list-disc list-inside space-y-2 pl-4">
-                <li><strong class="text-amber-600">Salts (Electrolytes):</strong> Screen electrostatic repulsion between charged lignin species, inducing aggregation above a Critical Coagulation Concentration (CCC). Higher valence ions are more effective coagulants (Schultz-Hardy rule)<sup class="text-amber-500">[176, 258, 259, 261]</sup>.</li>
-                <li><strong class="text-amber-600">Multivalent Cations:</strong> Specific ions (Ca²⁺, Cu²⁺, Al³⁺) can bridge anionic groups or form specific complexes, leading to precipitation or unique structures like "nanoflowers" (Cu-LS)<sup class="text-amber-500">[261, 263]</sup>.</li>
-                <li><strong class="text-amber-600">Oppositely Charged Polyelectrolytes:</strong> Form Polyelectrolyte Complexes (PECs) via strong electrostatic attraction (e.g., anionic LS + cationic PDADMAC/Chitosan). Can yield stable colloidal PEC nanoparticles or be used for Layer-by-Layer (LbL) film construction<sup class="text-amber-500">[88, 133, 134, 135, 265, 278]</sup>.</li>
-                <li><strong class="text-amber-600">Surfactants:</strong> Interact via hydrophobic/electrostatic forces. Cationic surfactants (CTAB) complex with LS; Anionic surfactants (SDBS) interact with modified lignin or stabilize NPs during pH shifts<sup class="text-amber-500">[146, 153, 154, 270-274, 284, 285]</sup>. Nonionic surfactants also affect stability<sup class="text-amber-500">[20, 276]</sup>.</li>
+                <li><strong class="text-amber-600">Salts (Electrolytes):</strong> Screen electrostatic repulsion between charged lignin species, promoting aggregation above a Critical Coagulation Concentration (CCC). Higher valence ions are more effective coagulants (Schultz-Hardy rule)<sup class="text-amber-500">[176, 258, 259, 261]</sup>. This is often used to precipitate lignin but can lead to uncontrolled aggregation if not managed.</li>
+                <li><strong class="text-amber-600">Multivalent Cations:</strong> Specific ions like Ca²⁺ or Cu²⁺ can specifically interact with anionic lignin groups, bridging molecules or particles and inducing precipitation or complex formation (e.g., Ca-LS precipitates or Cu-LS "nanoflowers")<sup class="text-amber-500">[255, 261, 263]</sup>. Their use can be complicated by hydroxide precipitation at high pH<sup class="text-amber-500">[64, 264]</sup>.</li>
+                <li><strong class="text-amber-600">Oppositely Charged Polyelectrolytes:</strong> Form Polyelectrolyte Complexes (PECs) via strong electrostatic attraction (e.g., anionic LS + cationic PDADMAC or Chitosan). Can yield stable colloidal PEC nanoparticles or be used for Layer-by-Layer (LbL) film assembly<sup class="text-amber-500">[88, 133, 134, 135, 265, 278]</sup>.</li>
+                <li><strong class="text-amber-600">Surfactants:</strong> Interact via hydrophobic/electrostatic forces. Cationic surfactants (e.g., CTAB) complex with LS, enabling self-assembly into colloidal spheres<sup class="text-amber-500">[146, 153, 154, 271-274]</sup>. Anionic surfactants (e.g., SDBS) can interact with modified lignin or stabilize particles during pH shifts<sup class="text-amber-500">[270, 284, 285]</sup>. Nonionic surfactants can also affect stability<sup class="text-amber-500">[20, 276]</sup>.</li>
                  <li><strong class="text-amber-600">Other Polymers:</strong> Neutral polymers (PVA, PEG) can form composites or influence assembly via H-bonding or steric effects<sup class="text-amber-500">[282, 286]</sup>.</li>
             </ul>
 
@@ -263,7 +328,6 @@
                 <p class="text-center instructional-text mb-4">Simulate adding salt (NaCl) or a cationic polyelectrolyte to a dispersion of negatively charged lignin nanoparticles (e.g., LS).</p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                    
                     <div class="space-y-4">
                          <div>
                              <label for="additiveType">Additive Type:</label>
@@ -285,7 +349,6 @@
                             Mechanism: <strong id="additiveMech" class="text-amber-700">Electrostatic Repulsion</strong>
                          </div>
                     </div>
-                    
                     <div id="additiveVis" class="visualization-box" style="background-color: #dbeafe;">
                          <p class="absolute top-1 left-2 text-xs text-gray-500 z-10">LNP Dispersion:</p>
                     </div>
@@ -297,7 +360,7 @@
         <section id="summary" class="mb-12 p-6 rounded-lg shadow-lg section-bg-white dynamic-content">
             <h2 class="text-2xl font-bold">6. Controlling LNP Properties: Key Variables and Morphological Diversity</h2>
             <p>Tailoring lignin nanoparticles requires navigating a complex parameter space. The final LNP characteristics are dictated by the interplay of <strong class="text-amber-600">compositional/physicochemical variables</strong> (lignin source/type/Mw/PDI/functional groups, solvent properties) and <strong class="text-amber-600">protocol variables</strong> (concentrations, addition order/rate, agitation, temperature, pH, additives)<sup class="text-amber-500">[1, Fig 7]</sup>.</p>
-            <p>Mastering these relationships allows access to a diverse morphological landscape beyond the common <strong class="text-amber-600">solid spheres</strong><sup class="text-amber-500">[240, 245]</sup>, including:</p>
+            <p>Mastering these relationships allows access to a diverse morphological landscape beyond the common <strong class="text-amber-600">solid spherical nanoparticles</strong><sup class="text-amber-500">[240, 245]</sup>, including:</p>
              <ul class="list-disc list-inside space-y-1 pl-4 text-sm">
                  <li><strong class="text-amber-600">Hollow Spheres/Capsules</strong><sup class="text-amber-500">[1, Fig 6; 221, 223, 234, 243]</sup></li>
                  <li><strong class="text-amber-600">Porous/Fractal Structures</strong><sup class="text-amber-500">[247, 251]</sup></li>
@@ -349,22 +412,47 @@
             <h3 class="text-lg font-semibold mb-3 text-amber-900">References</h3>
             <p class="text-xs mb-4">(References based on Trovagunta et al., *Adv. Colloid Interface Sci.* **2024**, <a href="https://doi.org/10.1016/j.cis.2024.103247" target="_blank" class="text-amber-600 hover:text-amber-800">DOI: 10.1016/j.cis.2024.103247</a>. Links provided where available in source.)</p>
              <ul class="space-y-2">
-                 {/* --- Reference List --- */}
                  <li>[1] Laurichesse S, Avérous L. Chemical modification of lignins: Towards biobased polymers. *Prog Polym Sci* **2014**;39:1266–90. <a href="https://doi.org/10.1016/j.progpolymsci.2013.11.004" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[2] Boerjan W, Ralph J, Baucher M. Lignin Biosynthesis. *Annu Rev Plant Biol* **2003**;54:519–46. <a href="https://doi.org/10.1146/annurev.arplant.54.031902.134938" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
-                 <li>[3] Rahimi A, Ulbrich A, Coon JJ, Stahl SS. Formic-acid-induced depolymerization of oxidized lignin to aromatics. *Nature* **2014**;515:249–52. <a href="https://doi.org/10.1038/nature13867" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></
+                 <li>[3] Rahimi A, Ulbrich A, Coon JJ, Stahl SS. Formic-acid-induced depolymerization of oxidized lignin to aromatics. *Nature* **2014**;515:249–52. <a href="https://doi.org/10.1038/nature13867" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[4] Zinovyev G, Sumerskii I, Korntner P, Sulaeva I, Rosenau T, Potthast A. Molar mass-dependent profiles of functional groups and carbohydrates in kraft lignin. *J Wood Chem Technol* **2017**;37:171–83. <a href="https://doi.org/10.1080/02773813.2016.1253103" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[5] Kim KH, Kim CS. Recent Efforts to Prevent Undesirable Reactions From Fractionation to Depolymerization of Lignin... *Front Energy Res* **2018**;6. <a href="https://doi.org/10.3389/fenrg.2018.00092" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[6] Lee SY, Lee J, Song Y, Valtiner M, Lee DW. pH-Dependent interaction mechanism of lignin nanofilms. *Nanoscale* **2021**;13:19568–77. <a href="https://doi.org/10.1039/D1NR06076G" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[7] Argyropoulos DS, Pajer N, Crestini C. Quantitative 31P NMR Analysis of Lignins and Tannins. *J Vis Exp* **2021**. <a href="https://doi.org/10.3791/62696" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[9] Li R, Huang D, Chen S, Lei L, Chen Y, Tao J, et al. From residue to resource: new insights into the synthesis of functionalized lignin micro/nanospheres... *Nanoscale* **2022**;14:10299–320. <a href="https://doi.org/10.1039/D2NR01350A" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[10] Li R, Huang D, Chen S, Lei L, Chen Y, Tao J, et al. Insight into the self-assembly process of bamboo lignin purified by solvent fractionation... *Colloids Surf A Physicochem Eng Asp* **2022**;642:128652. <a href="https://doi.org/10.1016/J.COLSURFA.2022.128652" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[11] Yang J, An X, Liu L, Tang S, Cao H, Xu Q, et al. Cellulose, hemicellulose, lignin, and their derivatives as multi-components of bio-based feedstocks for 3D printing. *Carbohydr Polym* **2020**;250:116881. <a href="https://doi.org/10.1016/j.carbpol.2020.116881" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[14] Pelesko JA. *Self Assembly*. Chapman and Hall/CRC; **2007**. <a href="https://doi.org/10.1201/9781584886884" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[15] Hubbe MA, Trovagunta R, Zambrano F, Tiller P, Jardim J. Self-assembly fundamentals in the reconstruction of lignocellulosic materials: A review. *Bioresources* **2023**;18:4262–331. <a href="https://doi.org/10.15376/biores.18.2.Hubbe" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[58] Yin JM, Wang HL, Yang ZK, Wang J, Wang Z, Duan LS, et al. Engineering Lignin Nanomicroparticles for the Antiphotolysis and Controlled Release... *J Agric Food Chem* **2020**;68:7360–8. <a href="https://doi.org/10.1021/acs.jafc.0c02835" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[59] Wang X, Liu X, Smith RL, Liang Y, Qi X. Direct one-pot synthesis of ordered mesoporous carbons from lignin... *Green Chemistry* **2021**;23:8632–42. <a href="https://doi.org/10.1039/d1gc03030b" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[60] Qian Y, Deng Y, Qiu X, Li H, Yang D. Formation of uniform colloidal spheres from lignin... *Green Chemistry* **2014**;16:2156–63. <a href="https://doi.org/10.1039/c3gc42131g" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[64] Hubbe MA, Alén R, Paleologou M, Kannangara M, Kihlman J. Lignin recovery from spent alkaline pulping liquors... *Bioresources* **2019**;14:2300–51. <a href="https://doi.org/10.15376/biores.14.1.Hubbe" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[83] Norgren M, Lindström B. Dissociation of Phenolic Groups in Kraft Lignin... *Holzforschung* **2000**;54:519–27. <a href="https://doi.org/10.1515/HF.2000.088" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[116] Meng H, Zhao Y, Wang S, Wang Y, Xiao Z, Wang H, et al. Turning the morphology and wetting ability of self-assembled hierarchical structures from lignin stearoyl esters. *Ind Crops Prod* **2022**;183:114969. <a href="https://doi.org/10.1016/j.indcrop.2022.114969" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[123] Lee JH, Kim TM, Choi I-G, Choi JW. Phenolic Hydroxyl Groups in the Lignin Polymer Affect the Formation of Lignin Nanoparticles. *Nanomaterials* **2021**;11:1790. <a href="https://doi.org/10.3390/nano11071790" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[124] Qian Y, Deng Y, Li H, Qiu X. Reaction-free lignin whitening via a self-assembly of acetylated lignin. *Ind Eng Chem Res* **2014**;53:10024–8. <a href="https://doi.org/10.1021/ie5010338" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[126] Jiang P, Li Q, Gao C, Lu J, Cheng Y, Zhai S, et al. Fractionation of alkali lignin by organic solvents... *Bioresour Technol* **2019**;289:121640. <a href="https://doi.org/10.1016/j.biortech.2019.121640" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[135] Dobrynin A, Rubinstein M. Theory of polyelectrolytes in solutions and at surfaces. *Prog Polym Sci* **2005**;30:1049–118. <a href="https://doi.org/10.1016/j.progpolymsci.2005.07.006" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[148] Zou J, Bao D, Ma R, Zhu Z, Chen X, Zhu J, et al. Green and Sustainable Self-Assembly Nanocomposite from Gentamicin Sulfate/Lignosulfonate... *ACS Sustain Chem Eng* **2020**;8:4931–40. <a href="https://doi.org/10.1021/acssuschemeng.0c00611" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[157] Hansen CM, Björkman A. The Ultrastructure of Wood from a Solubility Parameter Point of View. *Holzforschung* **1998**;52:335–44. <a href="https://doi.org/10.1515/hfsg.1998.52.4.335" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[160] Feng Y, Yu J, Sun D, Ren W, Shao C, Sun R. Solvent-induced in-situ self-assembly lignin nanoparticles to reinforce conductive nanocomposite organogels... *Chem Eng J* **2022**;433:133202. <a href="https://doi.org/10.1016/j.cej.2021.133202" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[161] Salanti A, Orlandi M, Lange H, Ferruti F, Zoia L. Phenolic Group Distribution as a Function of Molecular Weight in Lignins... *ACS Sustain Chem Eng* **2022**;10:11680–91. <a href="https://doi.org/10.1021/acssuschemeng.2c03774" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[162] Zhang J, Tian Z, Ji X, Zhang F. Fabrication Mechanisms of Lignin Nanoparticles and Their Ultraviolet Protection Ability... *Polymers (Basel)* **2022**;14:4196. <a href="https://doi.org/10.3390/polym14194196" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[163] Figueiredo P, Lintinen K, Hirvonen JT, Kostiainen MA, Santos HA. Properties and chemical modifications of lignin... *Prog Mater Sci* **2018**;93:233–69. <a href="https://doi.org/10.1016/j.pmatsci.2017.12.001" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[164] König-Mattern L, Komarova AO, Ghosh A, Linke S, Rihko-Struckmann LK, Luterbacher J, et al. High-throughput computational solvent screening for lignocellulosic biomass processing. *Chem Eng J* **2023**;452:139476. <a href="https://doi.org/10.1016/j.cej.2022.139476" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[165] Mohan M, Huang K, Pidatala VR, Simmons BA, Singh S, Sale KL, et al. Prediction of solubility parameters of lignin and ionic liquids... *Green Chemistry* **2022**;24:1165–76. <a href="https://doi.org/10.1039/D1GC03798F" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[166] Mohan M, Simmons BA, Sale KL, Singh S. Multiscale molecular simulations for the solvation of lignin in ionic liquids. *Sci Rep* **2023**;13:271. <a href="https://doi.org/10.1038/s41598-022-25372-2" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[176] Lindström T. The colloidal behaviour of kraft lignin. *Colloid Polym Sci* **1980**;258:168–73. <a href="https://doi.org/10.1007/BF01498276" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[177] Tanford C. *The hydrophobic effect: formation of micelles and biological membranes*. 2nd ed. Berlin, Germany: J. Wiley; **1980**.</li>
                  <li>[178] Liu X, Xie M, Hu Y, Li S, Nie S, Zhang A, et al. Facile preparation of lignin nanoparticles from waste Camellia oleifera shell... *Ind Crops Prod* **2022**;183:114943. <a href="https://doi.org/10.1016/j.indcrop.2022.114943" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[179] Hansen CM. *Hansen Solubility Parameters*. CRC Press; **2007**. <a href="https://doi.org/10.1201/9781420006834" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[180] Manisekaran A, Grysan P, Duez B, Schmidt DF, Lenoble D, Thomann JS. Solvents drive self-assembly mechanisms and inherent properties of Kraft lignin nanoparticles (<50 nm). *J Colloid Interface Sci* **2022**;626:178–92. <a href="https://doi.org/10.1016/j.jcis.2022.06.089" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[181] Novo LP, Curvelo AAS, Sa U De. Hansen Solubility Parameters: A Tool for Solvent Selection for Organosolv Delignification. *Ind Eng Chem Res* **2019**;58:10249-10257. <a href="https://doi.org/10.1021/acs.iecr.9b00875" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[182] Duval A, Vilaplana F, Crestini C, Lawoko M. Solvent screening for the fractionation of industrial kraft lignin. *Holzforschung* **2016**;70:11–20. <a href="https://doi.org/10.1515/hf-2014-0346" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[183] Ni H, Ren S, Fang G, Ma Y. Lignin solubility parameters. *Bioresources* **2016**;11:5848-5857.</li>
+                 <li>[184] Ruwoldt J, Tanase-opedal M, Syverud K. Ultraviolet Spectrophotometry of Lignin Revisited: Exploring Solvents with Low Harmfulness... *ACS Omega* **2022**;7:46371–83. <a href="https://doi.org/10.1021/acsomega.2c04982" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[185] Ribeiro WCO, Martinez PFM, Lobosco V. Solubility parameters analysis of Eucalyptus urograndis kraft lignin. *Bioresources* **2020**;15:8577–600. <a href="https://doi.org/10.15376/biores.15.4.8577-8600" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[219] Qian Y, Deng Y, Li H, Qiu X. Reaction-free lignin whitening via a self-assembly of acetylated lignin. *Ind Eng Chem Res* **2014**;53:10024–8. <a href="https://doi.org/10.1021/ie5010338" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[220] Li H, Deng Y, Liang J, Dai Y, Li B, Ren Y, et al. Direct Preparation of Hollow Nanospheres with Kraft Lignin... *Bioresources* **2016**;11:3073–83. <a href="https://doi.org/10.15376/biores.11.2.3073-3083" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[221] Li H, Deng Y, Wu H, Ren Y, Qiu X, Zheng D, et al. Self-assembly of kraft lignin into nanospheres in dioxane-water mixtures. *Holzforschung* **2016**;70:725–31. <a href="https://doi.org/10.1515/hf-2015-0238" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
@@ -381,8 +469,6 @@
                  <li>[244] Li Y, Yang D, Lu S, Qiu X, Qian Y, Li P. Encapsulating TiO2 in Lignin-Based Colloidal Spheres... *ACS Sustain Chem Eng* **2019**;7:6234–42. <a href="https://doi.org/10.1021/acssuschemeng.8b06607" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[245] Figueiredo P, Lahtinen MH, Agustin MB, de Carvalho DM, Hirvonen SP, Penttilä PA, et al. Green Fabrication Approaches of Lignin Nanoparticles from Different Technical Lignins... *ChemSusChem* **2021**;14:4718–30. <a href="https://doi.org/10.1002/cssc.202101356" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[247] Yan Z, Liao G, Zou X, Zhao M, Wu T, Chen Y, et al. Size-Controlled and Super Long-Term Stable Lignin Nanospheres... *J Agric Food Chem* **2020**;68:8341–9. <a href="https://doi.org/10.1021/acs.jafc.0c01262" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
-                 <li>[248] Chen L, Luo SM, Huo CM, Shi YF, Feng J, Zhu JY, et al. New insight into lignin aggregation guiding efficient synthesis and functionalization... *Green Chemistry* **2022**;24:285–94. <a href="https://doi.org/10.1039/d1gc03651c" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
-                 <li>[250] Cailotto S, Gigli M, Bonini M, Rigoni F, Crestini C. Sustainable Strategies in the Synthesis of Lignin Nanoparticles... *ChemSusChem* **2020**;13:4759–67. <a href="https://doi.org/10.1002/cssc.202001140" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[251] Salentinig S, Schubert M. Softwood Lignin Self-Assembly for Nanomaterial Design. *Biomacromolecules* **2017**;18:2649–53. <a href="https://doi.org/10.1021/acs.biomac.7b00822" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[254] Ren H, Zhu L, Xue S, Zhao J, Zhai H, Kong F. Effects of lignin content and acid concentration on the preparation of lignin containing nanofibers... *Nord Pulp Paper Res J* **2021**;36:125–38. <a href="https://doi.org/10.1515/npprj-2020-0066" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[255] Bao D, Xie Y, Ma S, Wu Z, Piao J-G. Self-assembly of a renewable lignin biopolymer in nanoparticles with multiple morphologies. *J Appl Polym Sci* **2019**;136:47482. <a href="https://doi.org/10.1002/app.47482" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
@@ -394,7 +480,11 @@
                  <li>[270] Huang S, Yang D, Zhang W, Qiu X, Li Q, Li C. Dual-templated synthesis of mesoporous lignin-derived honeycomb-like porous carbon/SiO2 composites... *Microporous Mesoporous Mater* **2021**;317:111004. <a href="https://doi.org/10.1016/j.micromeso.2021.111004" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[271] Li Y, Qiu X, Qian Y, Xiong W, Yang D. pH-responsive lignin-based complex micelles... *Chem Eng J* **2017**;327:1176–83. <a href="https://doi.org/10.1016/j.cej.2017.07.022" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
                  <li>[277] Jiang C, He H, Jiang H, Ma L, Jia DM. Nano-lignin filled natural rubber composites... *Express Polym Lett* **2013**;7:480–93. <a href="https://doi.org/10.3144/expresspolymlett.2013.44" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
-                 <li>[278] Pandey RP, Rasool K, Rasheed PA, Gomez T, Pasha M, Mansour SA, et al. One-step synthesis of an antimicrobial framework based on covalently cross-linked chitosan/lignosulfonate (CS@LS) nanospheres. *Green Chemistry* **2020**;22:678–87. <a href="https://doi.org/10.1039/c9gc03461g" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></
+                 <li>[278] Pandey RP, Rasool K, Rasheed PA, Gomez T, Pasha M, Mansour SA, et al. One-step synthesis of an antimicrobial framework based on covalently cross-linked chitosan/lignosulfonate (CS@LS) nanospheres. *Green Chemistry* **2020**;22:678–87. <a href="https://doi.org/10.1039/c9gc03461g" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[282] Zhu W, Lu J, Dai L. Multifunctional pH‐Responsive Sprayable Hydrogel Based on Chitosan and Lignin‐Based Nanoparticles. *Part Part Syst Charact* **2018**;35:1800145. <a href="https://doi.org/10.1002/ppsc.201800145" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[284] Pang Y, Wang S, Qiu X, Luo Y, Lou H, Huang J. Preparation of Lignin/Sodium Dodecyl Sulfate Composite Nanoparticles... *J Agric Food Chem* **2017**;65:11011–9. <a href="https://doi.org/10.1021/acs.jafc.7b03784" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[285] Li Y, Qiu X, Qian Y, Xiong W, Yang D. pH-responsive lignin-based complex micelles... *Chem Eng J* **2017**;327:1176–83. <a href="https://doi.org/10.1016/j.cej.2017.07.022" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
+                 <li>[286] Feng Y, Yu J, Sun D, Ren W, Shao C, Sun R. Solvent-induced in-situ self-assembly lignin nanoparticles to reinforce conductive nanocomposite organogels... *Chem Eng J* **2022**;433:133202. <a href="https://doi.org/10.1016/j.cej.2021.133202" target="_blank" class="text-amber-600 hover:text-amber-800">[DOI]</a></li>
             </ul>
             <p class="mt-6 text-center text-xs text-amber-700">Lignin Self-Assembly Course | Educational Resource</p>
         </footer>
@@ -403,9 +493,9 @@
 
     <script>
         // --- Intersection Observer ---
-        const sections_lignin_v3 = document.querySelectorAll('.dynamic-content');
-        const observerOptions_lignin_v3 = { root: null, rootMargin: '0px', threshold: 0.1 };
-        const observerCallback_lignin_v3 = (entries, observer) => {
+        const sections_lignin_v4 = document.querySelectorAll('.dynamic-content');
+        const observerOptions_lignin_v4 = { root: null, rootMargin: '0px', threshold: 0.1 };
+        const observerCallback_lignin_v4 = (entries, observer) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('fade-in-section');
@@ -413,45 +503,45 @@
                 }
             });
         };
-        const observer_lignin_v3 = new IntersectionObserver(observerCallback_lignin_v3, observerOptions_lignin_v3);
-        sections_lignin_v3.forEach(section => { observer_lignin_v3.observe(section); });
+        const observer_lignin_v4 = new IntersectionObserver(observerCallback_lignin_v4, observerOptions_lignin_v4);
+        sections_lignin_v4.forEach(section => { observer_lignin_v4.observe(section); });
 
         // --- Interactive Solvent Exchange ---
-        const asPercentSlider_v3 = document.getElementById('antisolventPercent');
-        const ligninConcSASSlider_v3 = document.getElementById('ligninConcSAS');
-        const additionOrderSelect_v3 = document.getElementById('additionOrder');
-        const asPercentValueSpan_v3 = document.getElementById('asPercentValue');
-        const ligninConcSASValueSpan_v3 = document.getElementById('ligninConcSASValue');
-        const sasStateSpan_v3 = document.getElementById('sasState');
-        const sasSizeSpan_v3 = document.getElementById('sasSize');
-        const sasMorphologySpan_v3 = document.getElementById('sasMorphology');
-        const sasVisDiv_v3 = document.getElementById('sasVis');
-        const solventBgDiv_v3 = document.getElementById('solventBg');
-        const antisolventBgDiv_v3 = document.getElementById('antisolventBg');
-        const CRITICAL_AS_PERCENT_v3 = 50;
+        const asPercentSlider_v4 = document.getElementById('antisolventPercent');
+        const ligninConcSASSlider_v4 = document.getElementById('ligninConcSAS');
+        const additionOrderSelect_v4 = document.getElementById('additionOrder');
+        const asPercentValueSpan_v4 = document.getElementById('asPercentValue');
+        const ligninConcSASValueSpan_v4 = document.getElementById('ligninConcSASValue');
+        const sasStateSpan_v4 = document.getElementById('sasState');
+        const sasSizeSpan_v4 = document.getElementById('sasSize');
+        const sasMorphologySpan_v4 = document.getElementById('sasMorphology');
+        const sasVisDiv_v4 = document.getElementById('sasVis');
+        const solventBgDiv_v4 = document.getElementById('solventBg');
+        const antisolventBgDiv_v4 = document.getElementById('antisolventBg');
+        const CRITICAL_AS_PERCENT_v4 = 50;
 
-        function updateSolventExchange_v3() {
-            const asPercent = parseInt(asPercentSlider_v3.value);
-            const ligninConc = parseFloat(ligninConcSASSlider_v3.value);
-            const order = additionOrderSelect_v3.value;
+        function updateSolventExchange_v4() {
+            const asPercent = parseInt(asPercentSlider_v4.value);
+            const ligninConc = parseFloat(ligninConcSASSlider_v4.value);
+            const order = additionOrderSelect_v4.value;
 
-            asPercentValueSpan_v3.textContent = asPercent;
-            ligninConcSASValueSpan_v3.textContent = ligninConc.toFixed(1);
-            antisolventBgDiv_v3.style.height = `${asPercent}%`;
-            sasVisDiv_v3.innerHTML = '<p class="absolute top-1 left-2 text-xs text-gray-500 z-10">System State:</p>'; // Clear particles
+            asPercentValueSpan_v4.textContent = asPercent;
+            ligninConcSASValueSpan_v4.textContent = ligninConc.toFixed(1);
+            antisolventBgDiv_v4.style.height = `${asPercent}%`;
+            sasVisDiv_v4.innerHTML = '<p class="absolute top-1 left-2 text-xs text-gray-500 z-10">System State:</p>';
 
             let state = 'Dissolved'; let sizeTrend = 'Molecular'; let morphology = 'Individual Molecules';
             const numMoleculesBase = 20; const particleDensityFactor = ligninConc / 5;
 
-            if (asPercent < CRITICAL_AS_PERCENT_v3 * 0.8) {
+            if (asPercent < CRITICAL_AS_PERCENT_v4 * 0.8) {
                 for (let i = 0; i < numMoleculesBase; i++) {
                     const mol = document.createElement('div'); mol.className = 'lignin-mol';
                     mol.style.top = `${Math.random() * 90 + 5}%`; mol.style.left = `${Math.random() * 90 + 5}%`;
-                    sasVisDiv_v3.appendChild(mol);
+                    sasVisDiv_v4.appendChild(mol);
                 }
             } else {
-                state = (asPercent < CRITICAL_AS_PERCENT_v3 * 1.2) ? 'Self-Assembling' : 'Precipitated / Aggregated';
-                const progress = Math.min(1, (asPercent - CRITICAL_AS_PERCENT_v3 * 0.8) / (CRITICAL_AS_PERCENT_v3 * 0.4));
+                state = (asPercent < CRITICAL_AS_PERCENT_v4 * 1.2) ? 'Self-Assembling' : 'Precipitated / Aggregated';
+                const progress = Math.min(1, (asPercent - CRITICAL_AS_PERCENT_v4 * 0.8) / (CRITICAL_AS_PERCENT_v4 * 0.4));
                 const baseSize = 6 + progress * (4 + ligninConc * 0.8);
                 sizeTrend = `~${baseSize.toFixed(0)} nm scale trend`;
                 morphology = (order === 'lignin_to_antisolvent') ? 'Hollow Spheres Tendency' : 'Solid Spheres';
@@ -463,14 +553,159 @@
                     p.style.top = `${Math.random() * (95 - baseSize/18) + 2}%`;
                     p.style.left = `${Math.random() * (95 - baseSize/18) + 2}%`;
                     p.style.opacity = `${0.6 + progress * 0.4}`;
-                    sasVisDiv_v3.appendChild(p);
+                    sasVisDiv_v4.appendChild(p);
                 }
             }
-            sasStateSpan_v3.textContent = state; sasSizeSpan_v3.textContent = sizeTrend; sasMorphologySpan_v3.textContent = morphology;
+            sasStateSpan_v4.textContent = state; sasSizeSpan_v4.textContent = sizeTrend; sasMorphologySpan_v4.textContent = morphology;
         }
-        asPercentSlider_v3.addEventListener('input', updateSolventExchange_v3);
-        ligninConcSASSlider_v3.addEventListener('input', updateSolventExchange_v3);
-        additionOrderSelect_v3.addEventListener('change', updateSolventExchange_v3);
+        asPercentSlider_v4.addEventListener('input', updateSolventExchange_v4);
+        ligninConcSASSlider_v4.addEventListener('input', updateSolventExchange_v4);
+        additionOrderSelect_v4.addEventListener('change', updateSolventExchange_v4);
+
+        // --- Interactive HSP Solubility Explorer ---
+        const hspLigninSelect = document.getElementById('hspLigninType');
+        const hspSolventSelect = document.getElementById('hspSolvent');
+        const hspASPercentSlider = document.getElementById('hspAntisolventPercent');
+        const hspASPercentValueSpan = document.getElementById('hspASPercentValue');
+        const hspMixValuesSpan = document.getElementById('hspMixValues');
+        const hspDistanceSpan = document.getElementById('hspDistance');
+        const hspStateSpan = document.getElementById('hspState');
+        const hspPlotSVG = document.getElementById('hspPlot');
+
+        // Approximate HSP values (MPa^1/2) and R0
+        const hspData = {
+            lignin: {
+                kraft: { dD: 20, dP: 10, dH: 15, R0: 10, label: 'Kraft Lignin' },
+                organosolv: { dD: 22, dP: 8, dH: 12, R0: 10, label: 'Organosolv Lignin' }
+            },
+            solvent: {
+                thf: { dD: 16.8, dP: 5.7, dH: 8.0, label: 'THF' },
+                acetone: { dD: 15.5, dP: 10.4, dH: 7.0, label: 'Acetone' },
+                ethanol: { dD: 15.8, dP: 8.8, dH: 19.4, label: 'Ethanol' },
+                dmso: { dD: 18.4, dP: 16.4, dH: 10.2, label: 'DMSO' }
+            },
+            antisolvent: { // Water
+                water: { dD: 15.5, dP: 16.0, dH: 42.3, label: 'Water' }
+            }
+        };
+
+        // --- SVG Plotting Setup ---
+        const svgNS = "http://www.w3.org/2000/svg";
+        const plotPadding = 15; // Padding inside SVG box
+        const plotWidth = 100 - 2 * plotPadding;
+        const plotHeight = 100 - 2 * plotPadding;
+        // Define axis ranges (adjust based on typical HSP values)
+        const dD_Min = 14, dD_Max = 24;
+        const dP_dH_Min = 0, dP_dH_Max = 45; // Range for sqrt(dP^2 + dH^2)
+
+        // Function to map HSP coordinates to SVG coordinates
+        function mapToSVG(dD, dP_dH) {
+            const x = plotPadding + ((dD - dD_Min) / (dD_Max - dD_Min)) * plotWidth;
+            const y = plotPadding + plotHeight - ((dP_dH - dP_dH_Min) / (dP_dH_Max - dP_dH_Min)) * plotHeight; // Y inverted
+            return { x, y };
+        }
+        // Function to map R0 radius to SVG units (approximate, depends on axis scaling)
+        function mapRadius(R0) {
+             // Average scaling factor
+            const scaleX = plotWidth / (dD_Max - dD_Min);
+            const scaleY = plotHeight / (dP_dH_Max - dP_dH_Min);
+            return R0 * (scaleX + scaleY) / 2;
+        }
+
+        function updateHSPSimulator() {
+            const ligninType = hspLigninSelect.value;
+            const solventType = hspSolventSelect.value;
+            const asPercent = parseInt(hspASPercentSlider.value);
+            const phi_as = asPercent / 100.0;
+            const phi_s = 1.0 - phi_as;
+
+            hspASPercentValueSpan.textContent = asPercent;
+
+            const lignin = hspData.lignin[ligninType];
+            const solvent = hspData.solvent[solventType];
+            const antisolvent = hspData.antisolvent.water;
+
+            // Calculate mixture HSP (linear mixing rule)
+            const dD_mix = phi_s * solvent.dD + phi_as * antisolvent.dD;
+            const dP_mix = phi_s * solvent.dP + phi_as * antisolvent.dP;
+            const dH_mix = phi_s * solvent.dH + phi_as * antisolvent.dH;
+
+            hspMixValuesSpan.textContent = `${dD_mix.toFixed(1)}, ${dP_mix.toFixed(1)}, ${dH_mix.toFixed(1)}`;
+
+            // Calculate Hansen Distance (Ra)
+            const Ra = Math.sqrt(4 * Math.pow(lignin.dD - dD_mix, 2) + Math.pow(lignin.dP - dP_mix, 2) + Math.pow(lignin.dH - dH_mix, 2));
+            hspDistanceSpan.textContent = Ra.toFixed(1);
+
+            // Determine state
+            const isSoluble = Ra < lignin.R0;
+            hspStateSpan.textContent = isSoluble ? "Dissolved (Ra < R0)" : "Precipitating / Assembling (Ra > R0)";
+
+            // --- Update SVG Plot ---
+            hspPlotSVG.innerHTML = ''; // Clear previous elements
+
+            // Re-add axes
+            const axes = `
+                <line x1="10" y1="90" x2="90" y2="90" stroke="#a8a29e" stroke-width="0.5"/>
+                <line x1="10" y1="90" x2="10" y2="10" stroke="#a8a29e" stroke-width="0.5"/>
+                <text x="50" y="98" class="hsp-text" style="fill: #57534e;">δD</text>
+                <text x="5" y="50" class="hsp-text" transform="rotate(-90, 5, 50)" style="fill: #57534e;">√(δP²+δH²)</text>
+            `;
+            hspPlotSVG.insertAdjacentHTML('beforeend', axes);
+
+
+            // Map points to SVG coordinates (using sqrt(dP^2 + dH^2) for y-axis)
+            const lignin_y = Math.sqrt(Math.pow(lignin.dP, 2) + Math.pow(lignin.dH, 2));
+            const solvent_y = Math.sqrt(Math.pow(solvent.dP, 2) + Math.pow(solvent.dH, 2));
+            const antisolvent_y = Math.sqrt(Math.pow(antisolvent.dP, 2) + Math.pow(antisolvent.dH, 2));
+            const mixture_y = Math.sqrt(Math.pow(dP_mix, 2) + Math.pow(dH_mix, 2));
+
+            const ligninPos = mapToSVG(lignin.dD, lignin_y);
+            const solventPos = mapToSVG(solvent.dD, solvent_y);
+            const antisolventPos = mapToSVG(antisolvent.dD, antisolvent_y);
+            const mixturePos = mapToSVG(dD_mix, mixture_y);
+            const svgRadius = mapRadius(lignin.R0);
+
+            // Draw line between solvent and antisolvent
+            const line = document.createElementNS(svgNS, 'line');
+            line.setAttribute('x1', solventPos.x); line.setAttribute('y1', solventPos.y);
+            line.setAttribute('x2', antisolventPos.x); line.setAttribute('y2', antisolventPos.y);
+            line.setAttribute('class', 'hsp-line');
+            hspPlotSVG.appendChild(line);
+
+            // Draw Lignin solubility sphere
+            const sphere = document.createElementNS(svgNS, 'circle');
+            sphere.setAttribute('cx', ligninPos.x); sphere.setAttribute('cy', ligninPos.y);
+            sphere.setAttribute('r', svgRadius);
+            sphere.setAttribute('class', 'hsp-sphere');
+            hspPlotSVG.appendChild(sphere);
+
+            // Draw points and labels
+            const points = [
+                { pos: ligninPos, fill: 'var(--hsp-lignin-fill)', radius: 4, label: lignin.label },
+                { pos: solventPos, fill: 'var(--hsp-solvent-fill)', radius: 3, label: solvent.label },
+                { pos: antisolventPos, fill: 'var(--hsp-antisolvent-fill)', radius: 3, label: antisolvent.label },
+                { pos: mixturePos, fill: 'var(--hsp-mixture-fill)', radius: 5, label: 'Mixture' }
+            ];
+
+            points.forEach(p => {
+                const circle = document.createElementNS(svgNS, 'circle');
+                circle.setAttribute('cx', p.pos.x); circle.setAttribute('cy', p.pos.y);
+                circle.setAttribute('r', p.radius); circle.setAttribute('fill', p.fill);
+                circle.setAttribute('class', 'hsp-point');
+                hspPlotSVG.appendChild(circle);
+
+                const text = document.createElementNS(svgNS, 'text');
+                text.setAttribute('x', p.pos.x); text.setAttribute('y', p.pos.y - p.radius - 2); // Position label above point
+                text.setAttribute('class', 'hsp-text');
+                text.textContent = p.label;
+                hspPlotSVG.appendChild(text);
+            });
+        }
+
+        hspLigninSelect.addEventListener('change', updateHSPSimulator);
+        hspSolventSelect.addEventListener('change', updateHSPSimulator);
+        hspASPercentSlider.addEventListener('input', updateHSPSimulator);
+
 
         // --- Interactive pH Precipitation ---
         const phSlider_v3 = document.getElementById('ligninPH');
@@ -488,7 +723,7 @@
             const ligninConc = parseFloat(ligninConcPHSlider_v3.value);
             phValueSpan_v3.textContent = ph.toFixed(1);
             ligninConcPHValueSpan_v3.textContent = ligninConc.toFixed(1);
-            phVisDiv_v3.innerHTML = '<p class="absolute top-1 left-2 text-xs text-gray-500 z-10">System State:</p>'; // Clear
+            phVisDiv_v3.innerHTML = '<p class="absolute top-1 left-2 text-xs text-gray-500 z-10">System State:</p>';
 
             let state = ''; let sizeTrend = 'N/A'; let morphology = 'N/A';
             const numMoleculesBase = 25; const particleDensityFactor = ligninConc / 10;
@@ -552,7 +787,7 @@
             polyControlDiv_v3.style.display = (type === 'polycation') ? 'block' : 'none';
             saltConcValueSpan_v3.textContent = saltConc.toFixed(2);
             polyRatioValueSpan_v3.textContent = polyRatio.toFixed(1);
-            additiveVisDiv_v3.innerHTML = '<p class="absolute top-1 left-2 text-xs text-gray-500 z-10">LNP Dispersion:</p>'; // Clear
+            additiveVisDiv_v3.innerHTML = '<p class="absolute top-1 left-2 text-xs text-gray-500 z-10">LNP Dispersion:</p>';
 
             let state = 'Stable Dispersion'; let mechanism = 'Electrostatic Repulsion'; let aggregationLevel = 0;
             const numParticles = 25;
@@ -561,7 +796,7 @@
                 aggregationLevel = Math.min(2, (saltConc / SALT_CCC_v3) * 1.5);
                 if (aggregationLevel > 1.5) { state = 'Aggregated / Sedimenting'; mechanism = 'Charge Screening / Coagulation'; }
                 else if (aggregationLevel > 0.5) { state = 'Aggregating'; mechanism = 'Charge Screening'; }
-            } else { // Polycation
+            } else {
                  aggregationLevel = Math.min(2, (polyRatio / PEC_RATIO_v3) * 1.8);
                  if (aggregationLevel > 1.8) { state = 'Complexed (Precipitated)'; mechanism = 'PEC Formation (Near Stoichiometry)'; }
                  else if (aggregationLevel > 0.3) { state = 'Complexing / Aggregating'; mechanism = 'Polyelectrolyte Complexation (PEC)'; }
@@ -582,7 +817,7 @@
                 const topPos = clusterCenterY + radius * Math.sin(angle);
                 p.style.left = `${Math.max(5, Math.min(85, leftPos))}%`;
                 p.style.top = `${Math.max(5, Math.min(85, topPos))}%`;
-                if (type === 'polycation' && aggregationLevel > 0.3) p.style.backgroundColor = '#a78bfa'; // Violet for PEC
+                if (type === 'polycation' && aggregationLevel > 0.3) p.style.backgroundColor = '#a78bfa';
 
                 const charge = document.createElement('span'); charge.className = 'charge-indicator'; charge.textContent = '-'; p.appendChild(charge);
                 additiveVisDiv_v3.appendChild(p);
@@ -613,19 +848,17 @@
 
 
         // --- Initial calls on load ---
-        // Need to call the correct function names for the previous page's apps if they exist
-        // Assuming the functions from the TOCNF page are named uniquely or not present
         window.addEventListener('load', () => {
-            // Initialize Lignin page apps
             updateSolventExchange_v3();
             updatePHPrecipitation_v3();
             updateAdditiveEffect_v3();
             updateExplorer_v3();
-             // Check if TOCNF functions exist before calling (if merging pages)
-             if (typeof updateDoOVisualization_v3 === 'function') updateDoOVisualization_v3();
-             if (typeof updateFibrillationVisualization_v3 === 'function') updateFibrillationVisualization_v3();
-             if (typeof updateGelationVisualization_v2 === 'function') updateGelationVisualization_v2(); // Use correct name if needed
-             if (typeof updateFeedstockVisualization_v2 === 'function') updateFeedstockVisualization_v2(); // Use correct name if needed
+            updateHSPSimulator(); // Initialize HSP app
+            // Ensure other page apps are initialized if this code were merged
+            if (typeof updateDoOVisualization_v3 === 'function') updateDoOVisualization_v3();
+            if (typeof updateFibrillationVisualization_v3 === 'function') updateFibrillationVisualization_v3();
+            if (typeof updateGelationVisualization_v2 === 'function') updateGelationVisualization_v2();
+            if (typeof updateFeedstockVisualization_v2 === 'function') updateFeedstockVisualization_v2();
         });
 
     </script>
@@ -634,3 +867,4 @@
 </html>
 ```
 
+This version now includes the requested interactive HSP explanation, providing a more complete picture of the physical chemistry governing the solvent-antisolvent method for LNP production, presented in a clean, professional format suitable for its intended audien
